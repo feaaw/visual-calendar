@@ -194,17 +194,12 @@ function renderTimeline() {
       card.style.left = 'auto';
       card.style.right = `${colIdx * colWidth}px`;
 
-      const contentWidth = colCount * 260; // Approx width of all cols
-      const startLeft = Math.max(0, availableWidth - contentWidth); // Start rendering from here
-
       const singleColWidth = 100 / colCount; // % width
-      // Position
-      card.style.left = `${100 - ((colIdx + 1) * singleColWidth)}%`;
-      card.style.width = `${singleColWidth - 2}%`; // Gap
 
+      // Position: Right aligned to be near + button
       card.style.left = 'auto';
-      card.style.right = `${colIdx * (100 / colCount)}%`;
-      card.style.width = `${(100 / colCount) - 2}%`;
+      card.style.right = `${colIdx * singleColWidth}%`;
+      card.style.width = `${singleColWidth - 2}%`;
 
       card.style.borderLeftColor = item.color || '#54a0ff';
       card.style.color = item.color || '#54a0ff';
@@ -338,8 +333,9 @@ function handleSave() {
       repeat: currentRepeat,
       color: activeColor
     });
-  }
+  };
 
+  saveData(); // Auto-save on create/edit
   renderTimeline();
   renderSidebar();
   closeModal();
