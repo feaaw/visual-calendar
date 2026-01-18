@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/javascript.svg" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#54a0ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BlueCal" />
+  <title>Calendar</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+    rel="stylesheet">
+  <script type="module" crossorigin src="/visual-calendar/assets/index-DkJuio3Q.js"></script>
+  <link rel="stylesheet" crossorigin href="/visual-calendar/assets/index-An4kYkmr.css">
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Tasks</h2>
+        <button class="add-task-btn" onclick="openModal('task')">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div id="task-list" class="task-sidebar-list"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Habits</h2>
+        <button class="add-task-btn" onclick="openModal('habit')">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div id="habit-list" class="task-sidebar-list"></div>
+    </div>
+  </aside>
+
+  <div id="app">
+    <header class="app-header">
+      <div class="top-row">
+        <div class="date-info">
+          <h1 id="current-month">January 2026</h1>
+          <div class="nav-controls">
+            <button class="nav-btn" onclick="changeWeek(-1)"><i data-lucide="chevron-left"></i></button>
+            <button class="nav-btn" onclick="changeWeek(1)"><i data-lucide="chevron-right"></i></button>
+            <button class="nav-btn" onclick="openSettings()"><i data-lucide="settings"></i></button>
+          </div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" id="week-bar"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+      <div class="timeline-scroll-area" id="scroller">
+        <div class="timeline-container">
+          <div class="timeline-line"></div>
+          <div id="time-marker" class="time-indicator"></div>
+          <div id="timeline-slots"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FAB Menu -->
+    <div class="fab-container">
+      <div class="fab-menu" id="fab-menu">
+        <button class="menu-item" onclick="openModal('habit')">
+          <span class="menu-label">New Habit</span>
+          <div class="menu-icon habit-bg"><i data-lucide="sparkles"></i></div>
+        </button>
+        <button class="menu-item" onclick="openModal('task')">
+          <span class="menu-label">New Task</span>
+          <div class="menu-icon task-bg"><i data-lucide="check-circle"></i></div>
+        </button>
+      </div>
+      <div class="fab" id="main-fab" onclick="toggleFabMenu()">
+        <i data-lucide="plus" id="fab-icon"></i>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>設定</h3>
+          <button class="close-btn" onclick="closeSettings()"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-item">
+            <!-- Color settings removed as requested -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Creation / Edit Modal -->
+    <div class="modal-overlay" id="creation-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modal-title">New Task</h3>
+          <button class="close-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="input-group">
+            <input type="text" id="title-input" class="premium-input-modern" placeholder="タイトル (例: 午後の集中)">
+          </div>
+
+          <div class="input-group">
+            <textarea id="notes-input" class="premium-textarea-modern" placeholder="メモや詳細を追加..."></textarea>
+          </div>
+
+          <div id="scheduling-section">
+            <div class="settings-grid">
+              <div class="setting-item">
+                <label><i data-lucide="clock"></i> 開始時間</label>
+                <input type="time" id="time-input" class="premium-input-field" step="300">
+              </div>
+              <div class="setting-item">
+                <label><i data-lucide="timer"></i> 所要時間</label>
+                <div class="duration-input-wrapper">
+                  <input type="number" id="duration-input" value="30" step="5">
+                  <span class="unit">min</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-full">
+              <label><i data-lucide="repeat"></i> 繰り返し設定</label>
+              <div class="repeat-chips-modern">
+                <button class="chip-modern active" data-repeat="none">なし</button>
+                <button class="chip-modern" data-repeat="daily">毎日</button>
+                <button class="chip-modern" data-repeat="weekly">毎週</button>
+                <button class="chip-modern" data-repeat="weekday">平日</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-full">
+            <label><i data-lucide="palette"></i> イベントカラー</label>
+            <div class="color-palette-modern">
+              <button class="color-circle active" style="background: #54a0ff;" data-color="#54a0ff"></button>
+              <button class="color-circle" style="background: #a29bfe;" data-color="#a29bfe"></button>
+              <button class="color-circle" style="background: #55efc4;" data-color="#55efc4"></button>
+              <button class="color-circle" style="background: #fdcb6e;" data-color="#fdcb6e"></button>
+              <button class="color-circle" style="background: #ff7675;" data-color="#ff7675"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
+          <button class="btn-primary" id="save-btn">追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
