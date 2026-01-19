@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#54a0ff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="BlueCal" />
-  <title>Calendar</title>
+  <meta name="apple-mobile-web-app-title" content="BlueCal Pro" />
+  <title>BlueCal Pro - AI タスク管理</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
@@ -19,10 +19,31 @@
 </head>
 
 <body>
+  <!-- Sidebar Toggle Button for iPad/Mobile -->
+  <button class="sidebar-toggle" onclick="toggleSidebar()">
+    <i data-lucide="menu"></i>
+  </button>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar with Inbox, Tasks, Projects, and Habits -->
   <aside class="sidebar">
+    <!-- Inbox Section -->
     <div class="sidebar-section">
       <div class="sidebar-header">
-        <h2 class="sidebar-title">Tasks</h2>
+        <h2 class="sidebar-title"><i data-lucide="inbox"></i> インボックス</h2>
+        <button class="add-task-btn" onclick="addInboxNote()">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div id="inbox-list" class="task-sidebar-list"></div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="sidebar-section">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title"><i data-lucide="check-square"></i> タスク</h2>
         <button class="add-task-btn" onclick="openModal('task')">
           <i data-lucide="plus"></i>
         </button>
@@ -30,9 +51,21 @@
       <div id="task-list" class="task-sidebar-list"></div>
     </div>
 
+    <!-- Projects Section -->
     <div class="sidebar-section">
       <div class="sidebar-header">
-        <h2 class="sidebar-title">Habits</h2>
+        <h2 class="sidebar-title"><i data-lucide="folder"></i> プロジェクト</h2>
+        <button class="add-task-btn" onclick="openModal('project')">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div id="project-list" class="task-sidebar-list"></div>
+    </div>
+
+    <!-- Habits Section -->
+    <div class="sidebar-section">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title"><i data-lucide="sparkles"></i> ルーチン</h2>
         <button class="add-task-btn" onclick="openModal('habit')">
           <i data-lucide="plus"></i>
         </button>
@@ -49,15 +82,57 @@
           <div class="nav-controls">
             <button class="nav-btn" onclick="changeWeek(-1)"><i data-lucide="chevron-left"></i></button>
             <button class="nav-btn" onclick="changeWeek(1)"><i data-lucide="chevron-right"></i></button>
+            <button class="nav-btn" onclick="toggleTimer()"><i data-lucide="timer"></i></button>
+            <button class="nav-btn" onclick="openVoiceInput()"><i data-lucide="mic"></i></button>
             <button class="nav-btn" onclick="openSettings()"><i data-lucide="settings"></i></button>
           </div>
         </div>
         <div class="week-bar-container">
           <div class="week-bar" id="week-bar"></div>
         </div>
+      </div>
     </header>
 
     <main class="main-content">
+      <!-- Focus Timer Widget -->
+      <div class="timer-widget" id="timer-widget">
+        <div class="timer-header">
+          <h3><i data-lucide="zap"></i> フォーカスタイマー</h3>
+          <button class="close-widget-btn" onclick="toggleTimer()"><i data-lucide="x"></i></button>
+        </div>
+        <div class="timer-display">
+          <div class="timer-circle">
+            <svg class="timer-ring" width="200" height="200">
+              <circle cx="100" cy="100" r="90" stroke="#e0e0e0" stroke-width="8" fill="none" />
+              <circle id="timer-progress" cx="100" cy="100" r="90" stroke="#54a0ff" stroke-width="8" fill="none"
+                stroke-dasharray="565.48" stroke-dashoffset="0" stroke-linecap="round"
+                transform="rotate(-90 100 100)" />
+            </svg>
+            <div class="timer-text">
+              <div id="timer-time">25:00</div>
+              <div id="timer-label">集中時間</div>
+            </div>
+          </div>
+        </div>
+        <div class="timer-controls">
+          <button class="timer-btn" id="timer-start-btn" onclick="startTimer()">
+            <i data-lucide="play"></i> 開始
+          </button>
+          <button class="timer-btn" id="timer-pause-btn" onclick="pauseTimer()" style="display:none;">
+            <i data-lucide="pause"></i> 一時停止
+          </button>
+          <button class="timer-btn secondary" onclick="resetTimer()">
+            <i data-lucide="rotate-ccw"></i> リセット
+          </button>
+        </div>
+        <div class="timer-presets">
+          <button class="preset-btn active" data-minutes="25" onclick="setTimerPreset(25)">25分</button>
+          <button class="preset-btn" data-minutes="45" onclick="setTimerPreset(45)">45分</button>
+          <button class="preset-btn" data-minutes="5" onclick="setTimerPreset(5)">5分休憩</button>
+          <button class="preset-btn" data-minutes="15" onclick="setTimerPreset(15)">15分休憩</button>
+        </div>
+      </div>
+
       <div class="timeline-scroll-area" id="scroller">
         <div class="timeline-container">
           <div class="timeline-line"></div>
@@ -70,12 +145,20 @@
     <!-- FAB Menu -->
     <div class="fab-container">
       <div class="fab-menu" id="fab-menu">
+        <button class="menu-item" onclick="addInboxNote()">
+          <span class="menu-label">クイックメモ</span>
+          <div class="menu-icon inbox-bg"><i data-lucide="inbox"></i></div>
+        </button>
+        <button class="menu-item" onclick="openModal('project')">
+          <span class="menu-label">プロジェクト</span>
+          <div class="menu-icon project-bg"><i data-lucide="folder"></i></div>
+        </button>
         <button class="menu-item" onclick="openModal('habit')">
-          <span class="menu-label">New Habit</span>
+          <span class="menu-label">ルーチン</span>
           <div class="menu-icon habit-bg"><i data-lucide="sparkles"></i></div>
         </button>
         <button class="menu-item" onclick="openModal('task')">
-          <span class="menu-label">New Task</span>
+          <span class="menu-label">タスク</span>
           <div class="menu-icon task-bg"><i data-lucide="check-circle"></i></div>
         </button>
       </div>
@@ -84,16 +167,79 @@
       </div>
     </div>
 
+    <!-- Voice Input Modal -->
+    <div class="modal-overlay" id="voice-modal">
+      <div class="modal-card voice-modal">
+        <div class="modal-header">
+          <h3><i data-lucide="mic"></i> 音声入力</h3>
+          <button class="close-btn" onclick="closeVoiceInput()"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="voice-indicator">
+            <div class="voice-pulse" id="voice-pulse"></div>
+            <i data-lucide="mic" class="voice-icon"></i>
+          </div>
+          <p class="voice-instruction">「明日の午後3時にミーティング」のように話してください</p>
+          <div class="voice-transcript" id="voice-transcript"></div>
+          <button class="btn-primary btn-large" id="voice-btn" onclick="toggleVoiceRecognition()">
+            <i data-lucide="mic"></i> 音声認識を開始
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settings-modal">
-      <div class="modal-card">
+      <div class="modal-card settings-modal">
         <div class="modal-header">
-          <h3>設定</h3>
+          <h3><i data-lucide="settings"></i> 設定</h3>
           <button class="close-btn" onclick="closeSettings()"><i data-lucide="x"></i></button>
         </div>
         <div class="modal-body">
-          <div class="setting-item">
-            <!-- Color settings removed as requested -->
+          <div class="settings-section">
+            <h4><i data-lucide="bell"></i> 通知設定</h4>
+            <div class="setting-item">
+              <label>
+                <span>タスク開始通知</span>
+                <input type="checkbox" id="notify-task-start" class="toggle-switch" checked>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <span>逃したタスクの通知</span>
+                <input type="checkbox" id="notify-missed-tasks" class="toggle-switch" checked>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <span>自動再計画</span>
+                <input type="checkbox" id="auto-reschedule" class="toggle-switch" checked>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>通知の頻度</label>
+              <select id="notification-frequency" class="premium-select">
+                <option value="realtime">リアルタイム</option>
+                <option value="hourly">1時間ごと</option>
+                <option value="daily">1日1回</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h4><i data-lucide="download"></i> データ管理</h4>
+            <button class="btn-secondary btn-block" onclick="exportData()">
+              <i data-lucide="download"></i> データをエクスポート
+            </button>
+            <button class="btn-secondary btn-block" onclick="importData()">
+              <i data-lucide="upload"></i> データをインポート
+            </button>
+            <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
+          </div>
+
+          <div class="settings-section">
+            <h4><i data-lucide="smartphone"></i> 同期</h4>
+            <p class="setting-note">データはブラウザに自動保存されます。iCloudやiPhone/iPadと同期するには、Safariでブックマークとして追加してください。</p>
           </div>
         </div>
       </div>
@@ -101,7 +247,7 @@
 
     <!-- Creation / Edit Modal -->
     <div class="modal-overlay" id="creation-modal">
-      <div class="modal-card">
+      <div class="modal-card large-modal">
         <div class="modal-header">
           <h3 id="modal-title">New Task</h3>
           <button class="close-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
@@ -116,8 +262,23 @@
             <textarea id="notes-input" class="premium-textarea-modern" placeholder="メモや詳細を追加..."></textarea>
           </div>
 
+          <!-- Project/Subtask Section -->
+          <div id="project-section" style="display:none;">
+            <div class="input-group">
+              <label><i data-lucide="list"></i> サブタスク</label>
+              <div id="subtask-list"></div>
+              <button class="btn-secondary btn-sm" onclick="addSubtask()">
+                <i data-lucide="plus"></i> サブタスクを追加
+              </button>
+            </div>
+          </div>
+
           <div id="scheduling-section">
             <div class="settings-grid">
+              <div class="setting-item">
+                <label><i data-lucide="calendar"></i> 日付</label>
+                <input type="date" id="date-input" class="premium-input-field">
+              </div>
               <div class="setting-item">
                 <label><i data-lucide="clock"></i> 開始時間</label>
                 <input type="time" id="time-input" class="premium-input-field" step="300">
@@ -140,6 +301,17 @@
                 <button class="chip-modern" data-repeat="weekday">平日</button>
               </div>
             </div>
+
+            <div class="setting-full">
+              <label><i data-lucide="bell"></i> リマインダー</label>
+              <div class="repeat-chips-modern">
+                <button class="chip-modern active" data-reminder="none">なし</button>
+                <button class="chip-modern" data-reminder="5">5分前</button>
+                <button class="chip-modern" data-reminder="15">15分前</button>
+                <button class="chip-modern" data-reminder="30">30分前</button>
+                <button class="chip-modern" data-reminder="60">1時間前</button>
+              </div>
+            </div>
           </div>
 
           <div class="setting-full">
@@ -150,6 +322,23 @@
               <button class="color-circle" style="background: #55efc4;" data-color="#55efc4"></button>
               <button class="color-circle" style="background: #fdcb6e;" data-color="#fdcb6e"></button>
               <button class="color-circle" style="background: #ff7675;" data-color="#ff7675"></button>
+              <button class="color-circle" style="background: #fd79a8;" data-color="#fd79a8"></button>
+              <button class="color-circle" style="background: #e17055;" data-color="#e17055"></button>
+              <button class="color-circle" style="background: #00b894;" data-color="#00b894"></button>
+            </div>
+          </div>
+
+          <div class="setting-full">
+            <label><i data-lucide="tag"></i> アイコン</label>
+            <div class="icon-palette">
+              <button class="icon-btn active" data-icon="circle"><i data-lucide="circle"></i></button>
+              <button class="icon-btn" data-icon="star"><i data-lucide="star"></i></button>
+              <button class="icon-btn" data-icon="heart"><i data-lucide="heart"></i></button>
+              <button class="icon-btn" data-icon="zap"><i data-lucide="zap"></i></button>
+              <button class="icon-btn" data-icon="coffee"><i data-lucide="coffee"></i></button>
+              <button class="icon-btn" data-icon="book"><i data-lucide="book"></i></button>
+              <button class="icon-btn" data-icon="briefcase"><i data-lucide="briefcase"></i></button>
+              <button class="icon-btn" data-icon="home"><i data-lucide="home"></i></button>
             </div>
           </div>
         </div>
